@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сохтани Даъватнома</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Times New Roman', sans-serif;
+            background: linear-gradient(120deg, #f6f9fc, #e8f0fe);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 5px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0066cc;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 8px;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: greenyellow;
+        }
+
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f6f9fc;
+            border-radius: 8px;
+            border: 1px solid #e1e4eb;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .output p {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f0f8ff;
+            border: 1px solid #c9dffc;
+            border-radius: 8px;
+            font-size: 16px;
+            white-space: pre-line;
+        }
+
+        .add-topic {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-topic input {
+            flex-grow: 1;
+        }
+
+        .topics-list {
+            margin-top: 10px;
+            list-style-type: decimal;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Сохтани даъватномаи маҷлиси волидайн</h1>
+        <form id="invitationForm">
+            <label for="names">Номҳо (бо вергул ҷудо кунед):</label>
+            <textarea id="names" rows="6" placeholder="Номҳоро ворид кунед, масалан: Алиҷон, Зайниддин"></textarea>
+            
+            <label for="schoolNumber">Рақами мактаб:</label>
+            <input type="number" id="schoolNumber" placeholder="Рақами мактабро ворид кунед">
+            
+            <label for="class">Синф:</label>
+            <input type="text" id="class" placeholder="Масалан: 8">
+            
+            <label for="text">Санаи маҷлис (масалан 01.09.2025):</label>
+            <input type="text" id="date" placeholder="Формат: 01.09.2025">
+            
+            <label for="time">Соати маҷлис:</label>
+            <input type="time" id="time">
+            
+            <label for="director">Номи директори муассиса:</label>
+            <input type="text" id="director" placeholder="Номи директорро ворид кунед">
+            
+            <label for="teacher">Номи роҳбари синф:</label>
+            <input type="text" id="teacher" placeholder="Номи роҳбарро ворид кунед">
+
+            <label>Масъалаҳои маҷлис:</label>
+            <textarea id="topicsInput" rows="4" placeholder="Масъалаҳоро ворид кунед, масалан: Ҳисоботи синф, Иштироки волидон"></textarea>
+
+            <label for="template">Интихоби шаблон:</label>
+            <select id="template">
+                <option value="template1">Шаблони 1 (расмӣ)</option>
+                <option value="template2">Шаблони 2 (ғайрирасмӣ)</option>
+            </select>
+            
+            <button type="button" onclick="generateInvitations()">Сохтани даъватномаҳо</button>
+        </form>
+
+        <div class="output" id="output"></div>
+        <button type="button" onclick="saveToWord()" id="saveButton" style="display: none;">Сабт кардан</button>
+    </div>
+
+    <script>
+        let invitationsContent = "";
+
+        function generateInvitations() {
+            const namesInput = document.getElementById('names').value;
+            const schoolNumber = document.getElementById('schoolNumber').value;
+            const className = document.getElementById('class').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const director = document.getElementById('director').value;
+            const teacher = document.getElementById('teacher').value;
+            const template = document.getElementById('template').value;
+            const topicsInput = document.getElementById('topicsInput').value;
+            const names = namesInput.split(',').map(name => name.trim());
+            const topics = topicsInput.split('.').map(topic => topic.trim()).filter(topic => topic.length > 0);
+            const outputDiv = document.getElementById('output');
+            const saveButton = document.getElementById('saveButton');
+
+            outputDiv.innerHTML = "";
+            invitationsContent = "";
+
+            if (!names.length || !schoolNumber || !className || !date || !time || !director || !teacher || !topics.length) {
+                alert("Лутфан ҳамаи маълумотҳоро пур кунед!");
+                return;
+            }
+
+            const topicsText = topics.map((topic, index) => `${index + 1}. ${topic}`).join('\n');
+
+            names.forEach(name => {
+                let invitationText;
+
+                if (template === "template1") {
+                    invitationText = `
+Муҳтарам ${name}!
+Ба маълумоти Шумо мерасонем, ки рӯзи ${date}  соати ${time} дар мактаби таҳсилоти миёнаи умумии рақами ${schoolNumber} барои синфи ${className} маҷлиси падару модарон баргузор мегардад.
+
+Масъалаҳое, ки баррасӣ мешаванд:
+${topicsText}
+
+Директори муассиса: _______________${director}
+Роҳбари синф:______________${teacher}
+
+______________________________________________________________________________________
+                    `;
+                } else if (template === "template2") {
+                    invitationText = `
+Салом, ${name}!
+
+Маълумот медиҳем, ки санаи ${date} соати ${time} дар мактаб ${schoolNumber} 
+маҷлиси синфии ${className} баргузор мешавад. Лутфан иштирок кунед.
+                    
+Масъалаҳо:
+${topicsText}
+
+Бо эҳтиром,
+${director} ва ${teacher}
+
+______________________________________________________________________________________
+                    `;
+                }
+
+                const paragraph = document.createElement('p');
+                paragraph.textContent = invitationText.trim();
+                outputDiv.appendChild(paragraph);
+
+                invitationsContent += invitationText.trim() + "\n\n";
+            });
+
+            saveButton.style.display = "block";
+        }
+
+        function saveToWord() {
+            const blob = new Blob([invitationsContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+            saveAs(blob, "Даъватномаҳо.docx");
+        }
+    </script>
+</body>
+</html>
